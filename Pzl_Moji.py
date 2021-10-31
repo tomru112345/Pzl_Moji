@@ -70,7 +70,8 @@ def draw_block():
                                 y * cell_len + int(flame_len + cell_len / 2),
                                 text=Word_Kanji[neko[y][x]],
                                 anchor="center",
-                                font=("HG丸ｺﾞｼｯｸM-PRO", 24),
+                                font=("HG丸ｺﾞｼｯｸM-PRO", 48),
+                                fill=Moji_Color[neko[y][x]],
                                 tag="DROW"
                                 )
 
@@ -219,7 +220,7 @@ def game_main():
             cursor_y = int((mouse_y - flame_len) / cell_len)
             if mouse_c:
                 mouse_c = False
-                # set_block()
+                set_block()
                 neko[cursor_y][cursor_x] = tsugi
                 tsugi = 0
                 index = 2
@@ -247,7 +248,8 @@ def game_main():
         cvs.create_text(752, 128,
                         text=Word_Kanji[tsugi],
                         anchor="center",
-                        font=("HG丸ｺﾞｼｯｸM-PRO", 24),
+                        font=("HG丸ｺﾞｼｯｸM-PRO", 48),
+                        fill=Moji_Color[tsugi],
                         tag="INFO"
                         )
     root.after(100, game_main)
@@ -295,6 +297,17 @@ if __name__ == '__main__':
         "一",
         "水",
         "卍"
+    ]
+
+    Moji_Color = [
+        None,
+        "#FF4F02",
+        "#FF0461",
+        "#005FFF",
+        "#00ECFF",
+        "#00F9A9",
+        "#B6FF01",
+        "#00FF3B"
     ]
 
     game_main()
