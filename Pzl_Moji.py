@@ -77,6 +77,20 @@ def draw_block():
 
 
 def check_block():
+    """消す判定"""
+    """
+    Word_Kanji = [
+        None,
+        "木",
+        "口",
+        "八",
+        "十",
+        "一",
+        "水",
+        "✕"
+    ]
+    """
+
     for y in range(cell_y):
         for x in range(cell_x):
             check[y][x] = neko[y][x]
@@ -145,7 +159,7 @@ def set_block():
 
 
 def draw_txt(txt, x, y, siz, col, tg):
-    fnt = ("Meiryo UI", siz, "bold")
+    fnt = ("HG丸ｺﾞｼｯｸM-PRO", siz, "bold")
     cvs.create_text(x + 2, y + 2, text=txt, fill="black", font=fnt, tag=tg)
     cvs.create_text(x, y, text=txt, fill=col, font=fnt, tag=tg)
 
@@ -154,7 +168,7 @@ def game_main():
     global index, timer, score, hisc, difficulty, tsugi
     global cursor_x, cursor_y, mouse_c
     if index == 0:  # タイトルロゴ
-        draw_txt("もじもじくん", 312, 240, 100, "violet", "TITLE")
+        draw_txt("もじもじ", 312, 240, 100, "violet", "TITLE")
         cvs.create_rectangle(168, 384, 456, 456,
                              fill="skyblue", width=0, tag="TITLE")
         draw_txt("Easy", 312, 420, 40, "white", "TITLE")
@@ -232,7 +246,7 @@ def game_main():
                              int(flame_len + cell_len / 2) + (cell_len / 2),
                              cursor_y * cell_len +
                              int(flame_len + cell_len / 2) + (cell_len / 2),
-                             outline="#FF0000", width=3, tag="CURSOR")
+                             outline="#FF0000", width=5, tag="CURSOR")
         draw_block()
     elif index == 6:  # ゲームオーバー
         timer = timer + 1
@@ -296,7 +310,7 @@ if __name__ == '__main__':
         "十",
         "一",
         "水",
-        "卍"
+        "✕"
     ]
 
     Moji_Color = [
@@ -307,7 +321,7 @@ if __name__ == '__main__':
         "#00ECFF",
         "#00F9A9",
         "#B6FF01",
-        "#00FF3B"
+        "#FF0000"
     ]
 
     game_main()
