@@ -1,12 +1,16 @@
 import tkinter
+import tkinter.ttk as ttk
 import random
 
 index = 0
 timer = 0
 score = 0
-hisc = 1000
+hisc = 0
 difficulty = 0
 tsugi = 0
+
+# コンボ数
+combo = 0
 
 # カーソルの位置
 cursor_x = 0
@@ -47,6 +51,14 @@ kdown = False
 
 # 設置するかどうか
 cursor_c = False
+
+bom = False
+alldelete_flag = False
+
+# プログレスバーの設定値
+maximum_bar = 100
+value_bar = 0
+div_bar = 1
 
 
 def mouse_move(e):
@@ -106,7 +118,7 @@ def draw_block():
 
 
 def move_cursor():
-    global px, py, cursor_c, index, difficulty, select
+    global px, py, cursor_c, index, difficulty, select, bom
 
     if (index == 1):
         if ((key == "Return")):
@@ -121,7 +133,7 @@ def move_cursor():
                 and (select < 3)):
             if (select != 0):
                 select -= 1
-        # 111
+
     if (index == 5):
         if ((key == "Left")
             and (px < cell_x)
@@ -143,6 +155,8 @@ def move_cursor():
                     py += 1
         if (key == "Up"):
             cursor_c = True
+        if ((key == "Return")):
+            bom = True
 
 
 def check_block():
@@ -215,6 +229,17 @@ def drop_block():
     return flg
 
 
+def all_delete_block():
+    """ブロックを全て削除"""
+    num = 0
+    for y in range(cell_y):
+        for x in range(cell_x):
+            if ((cell[y][x] > 0) and (cell[y][x] < 7)):
+                cell[y][x] = 7
+                num = num + 1
+    return num
+
+
 def over_block():
     for x in range(cell_x):
         if cell[0][x] > 0:
@@ -228,16 +253,23 @@ def set_block():
 
 
 def draw_txt(txt, x, y, siz, col, tg):
-    fnt = ("HG丸ｺﾞｼｯｸM-PRO", siz, "bold")
+    fnt = ("HG丸ｺﾞｼｯｸM-PRO", siz)
     cvs.create_text(x + 2, y + 2, text=txt, fill="black", font=fnt, tag=tg)
     cvs.create_text(x, y, text=txt, fill=col, font=fnt, tag=tg)
 
+# プログレスバーの更新
+
+
+def var_add(value_bar):
+    progressbar.configure(value=value_bar)
+
 
 def game_main():
-    global index, timer, score, hisc, difficulty, tsugi
+    global index, timer, score, hisc, difficulty, tsugi, combo
     global cursor_x, cursor_y, mouse_c, cursor_c, px, py
+    global value_bar, bom, alldelete_flag
     if index == 0:  # タイトルロゴ
-        # draw_txt("もじもじ", 312, 240, 100, "violet", "TITLE")
+        cvs.delete("TITLE")
         cvs.create_rectangle(168, 384, 456, 456,
                              fill="black", width=0, tag="TITLE")
         draw_txt("Easy", 312, 420, 40, "white", "TITLE")
@@ -322,23 +354,42 @@ def game_main():
         index = 4
     elif index == 4:  # 揃ったら消す
         sc = sweep_block()
-        score = score + sc*difficulty*2
+        score += (sc * difficulty * 2)
         if score > hisc:
             hisc = score
         if sc > 0:
+            combo += 1
+            value_bar += ((combo)**2 * sc)
             index = 2
         else:
             if not over_block():
                 tsugi = random.randint(1, difficulty)
-                px = 0
-                py = 0
+                if (not alldelete_flag):
+                    px = 0
+                    py = 0
+                    var_add(value_bar)
+                else:
+                    value_bar = 0
+                    var_add(value_bar)
+                    alldelete_flag = False
                 index = 5
             else:
                 index = 6
                 timer = 0
         draw_block()
     elif index == 5:  # 入力を待つ
+        combo = 0
         move_cursor()
+        if (bom and value_bar >= 100):
+            bom = False
+            delete_num = all_delete_block()
+            score += (delete_num * difficulty * 2)
+            draw_block()
+            alldelete_flag = True
+            tsugi = 0
+            index = 4
+        else:
+            bom = False
         if ((px >= 0 and px < cell_x) and (py >= 0 and py < cell_y)):
             cursor_x = px
             cursor_y = py
@@ -378,12 +429,61 @@ def game_main():
         timer = timer + 1
         if timer == 1:
             draw_txt("GAME OVER", 312, 348, 60, "red", "OVER")
+            value_bar = 0
+            var_add(value_bar)
         if timer == 30:
             cvs.delete("OVER")
             index = 0
+
     cvs.delete("INFO")
-    draw_txt("SCORE "+str(score), 160, 60, 32, "blue", "INFO")
-    draw_txt("HISC "+str(hisc), 450, 60, 32, "yellow", "INFO")
+    cvs.create_text(cvs_width - flame_len,
+                    cvs_height - flame_len - 60 * 6,
+                    text="COMBO",
+                    anchor="e",
+                    font=("HG丸ｺﾞｼｯｸM-PRO", 28),
+                    fill="green",
+                    tag="INFO"
+                    )
+    cvs.create_text(cvs_width - flame_len,
+                    cvs_height - flame_len - 60 * 5,
+                    text=str(combo),
+                    anchor="e",
+                    font=("HG丸ｺﾞｼｯｸM-PRO", 28),
+                    fill="green",
+                    tag="INFO"
+                    )
+    cvs.create_text(cvs_width - flame_len,
+                    cvs_height - flame_len - 60 * 4,
+                    text="SCORE",
+                    anchor="e",
+                    font=("HG丸ｺﾞｼｯｸM-PRO", 28),
+                    fill="blue",
+                    tag="INFO"
+                    )
+    cvs.create_text(cvs_width - flame_len,
+                    cvs_height - flame_len - 60 * 3,
+                    text=str(score),
+                    anchor="e",
+                    font=("HG丸ｺﾞｼｯｸM-PRO", 28),
+                    fill="blue",
+                    tag="INFO"
+                    )
+    cvs.create_text(cvs_width - flame_len,
+                    cvs_height - flame_len - 60 * 2,
+                    text="HIGHSCORE",
+                    anchor="e",
+                    font=("HG丸ｺﾞｼｯｸM-PRO", 28),
+                    fill="red",
+                    tag="INFO"
+                    )
+    cvs.create_text(cvs_width - flame_len,
+                    cvs_height - flame_len - 60 * 1,
+                    text=str(hisc),
+                    anchor="e",
+                    font=("HG丸ｺﾞｼｯｸM-PRO", 28),
+                    fill="red",
+                    tag="INFO"
+                    )
     if tsugi > 0:
         cvs.create_text(752,
                         128,
@@ -398,17 +498,20 @@ def game_main():
 
 if __name__ == '__main__':
     root = tkinter.Tk()
-    root.title("落ち物パズル : もじもじくん")
-    root.resizable(False, False)  # ウィンドウサイズ変更できない
-    root.bind("<Motion>", mouse_move)  # マウスが動いた時に実行
-    root.bind("<ButtonPress>", mouse_press)  # マウスクリックを指定
-    root.bind("<ButtonRelease>", mouse_release)  # マウスリリースを指定
+    root.title("もじもじ")
+    root.resizable(False, False)
 
+    root.bind("<Motion>", mouse_move)
+    root.bind("<ButtonPress>", mouse_press)
+    root.bind("<ButtonRelease>", mouse_release)
     root.bind("<KeyPress>", key_down)
     root.bind("<KeyRelease>", key_up)
-
     cvs = tkinter.Canvas(root, width=cvs_width, height=cvs_height)
-    cvs.pack()
+    cvs.pack(side=tkinter.RIGHT)
+    progressbar = ttk.Progressbar(
+        root, orient="vertical", length=cvs_height, mode="determinate")
+    progressbar.pack(side=tkinter.LEFT)
+    progressbar.configure(maximum=maximum_bar, value=value_bar)
 
     # フィールド作成
     flame_color = "#808080"
@@ -452,17 +555,15 @@ if __name__ == '__main__':
                     128 + cell_len / 2 + flame_len / 2,
                     width=24,
                     fill=flame_color)
-    # cvs.create_line((flame_len + cell_len * cell_x + flame_len / 2), 0,
-    #                 (flame_len + cell_len * cell_x + flame_len / 2), cvs_height, width=24, fill=flame_color)
-    # cvs.create_line(0, (cvs_height - flame_len / 2), (flame_len + cell_len * cell_x + flame_len / 2),
-    #                 (cvs_height - flame_len / 2), width=24, fill=flame_color)
 
     for y in range(cell_y):
         for x in range(cell_x):
-            if ((x + y) % 2 == 0):
-                cell_color = "#C0C0C0"
+            if (y == 0):
+                cell_color = "#770000"
+            elif ((x + y) % 2 == 0):
+                cell_color = "#BBBBBB"
             else:
-                cell_color = "#FFFFFF"
+                cell_color = "#EEEEEE"
             cvs.create_rectangle(flame_len + x * cell_len,
                                  flame_len + y * cell_len,
                                  flame_len + (x + 1) * cell_len,
